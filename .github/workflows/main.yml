@@ -1,0 +1,44 @@
+name: CI - Calculadora HTML JavaScript - Herramientas TIC
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v7
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Validar HTML
+        run: npm run lint:html
+
+      - name: Validar JavaScript
+        run: npm run check:js
+
+      - name: Ejecutar pruebas
+        run: npm test
+
+      - name: Preparar artefacto
+        run: npm run build
+
+      - name: Publicar artefacto del build
+        uses: actions/upload-artifact@v7
+        with:
+          name: sitio-web
+          path: dist/
+
+      - name: Despliegue simulado
+        run: echo "Despliegue exitoso - artefacto listo en dist/"
