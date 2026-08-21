@@ -1,10 +1,13 @@
-name: CI - Calculadora HTML JavaScript - Herramientas TIC
+name: CI/CD - Calculadora HTML JavaScript - AWS
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build-test:
@@ -12,10 +15,10 @@ jobs:
 
     steps:
       - name: Descargar código
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
       - name: Configurar Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v4
         with:
           node-version: "24"
 
@@ -31,14 +34,51 @@ jobs:
       - name: Ejecutar pruebas
         run: npm test
 
-      - name: Preparar artefacto
+      - name: Preparar build
         run: npm run build
 
-      - name: Publicar artefacto del build
-        uses: actions/upload-artifact@v7
+      - name: Publicar artefacto
+        uses: actions/upload-artifact@v4
         with:
           name: sitio-web
           path: dist/
 
-      - name: Despliegue simulado
-        run: echo "Despliegue exitoso - artefacto listo en dist/"
+  deploy:
+    name: Desplegar en AWS S3
+    needs: build-test
+    runs-on: ubuntu-latest
+
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Generar build
+        run: npm run build
+
+      - name: Configurar credenciales AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Desplegar sitio en S3
+        run: |
+          aws s3 sync dist/ s3://${{ secrets.AWS_S3_BUCKET }} --delete
+
+      - name: Confirmar despliegue
+        run: |
+          echo "======================================"
+          echo "Despliegue realizado correctamente"
+          echo "Bucket: ${{ secrets.AWS_S3_BUCKET }}"
+          echo "======================================"
