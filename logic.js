@@ -7,12 +7,16 @@ function dividir(a, b) {
   return a / b;
 }
 
+function potencia (a,b) {
+  return Math.pow (a,b);
+}
+
 function calcularOperacion(a, b, operacion) {
-  const operaciones = { sumar, restar, multiplicar, dividir };
+  const operaciones = { sumar, restar, multiplicar, dividir, potencia };
   if (!operaciones[operacion]) throw new Error("Operación no válida");
   return operaciones[operacion](a, b);
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { sumar, restar, multiplicar, dividir, calcularOperacion };
+  module.exports = { sumar, restar, multiplicar, dividir, potencia, calcularOperacion };
 }
